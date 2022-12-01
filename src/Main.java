@@ -170,6 +170,7 @@ public class Main {
             result.add("R" + TillStart + ", R" + item_value + ", R" + total_tendered + ", R" +change  + ", " + ChangeBreakdown);
             TillStart += item_value-change;
         }
+        result.add("\n"+String.valueOf(TillStart)+"\n");
     }
 
     private static void InitTill() {
