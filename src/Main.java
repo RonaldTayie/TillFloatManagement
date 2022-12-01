@@ -6,15 +6,12 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-
     private static ArrayList<String> lines = new ArrayList<String>();
     private static ArrayList<String> result = new ArrayList<String>();
     private static String ChangeBreakdown = "";
-
     // Currency piece Value, Number of Pieces
     private static HashMap<Integer,Integer> Till = new HashMap<Integer,Integer>();
     private static int TillStart = 0;
-
     // Rewrite the result file
     private static void UpdateReslts(File file) {
         try {
@@ -30,11 +27,10 @@ public class Main {
             if(!r.exists()) {
                 r.createNewFile();
             }
-
             Writer w;
             w = new BufferedWriter( new FileWriter(r));
             for(String rs : result) {
-                w.append(rs);
+                w.write(rs+"\n");
             }
             w.close();
         }catch(Exception e) {
@@ -48,7 +44,6 @@ public class Main {
             while(scan.hasNextLine()) {
                 lines.add(scan.nextLine());
             }
-
         }catch(Exception e) {
             System.out.println(e.toString());
         }
@@ -72,7 +67,6 @@ public class Main {
                 Till.put(p, 1);
             }
         }
-
         ArrayList<Integer> usable_pieces = new ArrayList<Integer>();
         for(int cp : Till.keySet()) {
             if(cp <= c) {
@@ -86,15 +80,10 @@ public class Main {
          */
         ArrayList <Integer> used_pieces = new ArrayList<Integer>();
         int ch = 0;
-
-        int next =0;
-        int prev;
-
         // total iteration sum
         int current_sum = 0;
         // Sum of i plus j item
         int itsum = 0;
-
         for(int i =0;i<usable_pieces.size();i++) {
             boolean parent_break = false;
             if(usable_pieces.get(i)==c) {
@@ -109,8 +98,6 @@ public class Main {
                         used_pieces.add(usable_pieces.get(j));
                         parent_break = true;
                         break;
-                    }else {
-
                     }
                     // To avoid ArrayOutOfBounce exception ill check add the previous item and the next item will be
                     // worked with on the next iteration
@@ -126,7 +113,6 @@ public class Main {
                         parent_break = true;
                         break;
                     }
-
                     if(current_sum==c) {
                         // Add all previous pieces to the used_pieces
                         for(int k = 0;k<j;k++) {
@@ -135,36 +121,29 @@ public class Main {
                         parent_break = true;
                         break;
                     }
-                    // the sum of previous elements becomes greater than change value
-                    // we will find the difference and if the difference value is in the Till HashMap we will try to add the present in the HashMap
-                    // until we get a value equal to the difference below or equal to the change. For example.
-                    // Change is: 14
-                    // Closest greater value is: 15
-                    // Difference is 1
-                    // Remainder from the closes small value is 10 with a difference from the change value of 4
-                    // So we will take that difference and find the biggest currency piece we can add or multiple until we get the value of 4
-                    if(current_sum>c) {
-                        int diff = current_sum-c;
-                        ArrayList<Integer> temp = new ArrayList<Integer>();
-
-                    }
-
                     current_sum += usable_pieces.get(j);
                 }
-
             }
-
             if(parent_break) {
                 break;
             }
         }
-        System.out.println("Usable : "+usable_pieces);
-        System.err.println("Change: "+c+" ~ used : "+used_pieces);
-        System.out.println("------------------------------------");
+        if(!used_pieces.isEmpty()) {
+            ArrayList<String> f = new ArrayList<String>();
+            for(int n: used_pieces){
+                f.add("R"+n);
+            }
+            StringBuilder str = new StringBuilder("");
+            for(String s : f) {
+                str.append(s).append("-");
+            }
+            return str.toString().substring(0,str.length()-1);
+        }
         return "";
     }
 
     private static void Transact() {
+        result.add("Till Start, Transaction Total, Paid, Change Total, Change Breakdown");
         for (String line : lines) {
             // Split line into two parts [ Item_&_Price, Tendered Cash ]
             String [] transaction = line.split(",");
@@ -188,9 +167,8 @@ public class Main {
             }
             change = (total_tendered-item_value);
             ChangeBreakdown = change==0? "R0" : makeup_change(change, pieces_tendered);
-//			System.out.println("R" + TillStart + ", R" + item_value + ", R" + total_tendered + ", R" +change  + ", " + ChangeBreakdown);
-//			TillStart += item_value-change;
-//			System.out.println("-------------------------------");
+            result.add("R" + TillStart + ", R" + item_value + ", R" + total_tendered + ", R" +change  + ", " + ChangeBreakdown);
+            TillStart += item_value-change;
         }
     }
 
@@ -213,11 +191,13 @@ public class Main {
         InitTill();
         String filename = getFileLocation()+"input.txt";
         File file = new File(filename);
+        File resultFile = new File(getFileLocation()+"result.txt");
         //if the file exists proceed
         if(file.exists()) {
             ReadFile(file);
             if(lines.size() > 0) {
                 Transact();
+                UpdateReslts(resultFile);
             }else {
                 System.err.println("No transaction Data Available..");
                 System.exit(0);
